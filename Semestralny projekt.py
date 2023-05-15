@@ -184,7 +184,7 @@ class Grafik:
 
             x = 100
         but = tkinter.Button(
-            text="Vymazať označené", command=lambda: self.zisti_čo_vymazat(produkty)
+            text="Vymazať označené", command=lambda: self.zisti_co_vymazat(produkty)
         )
         but.place_configure(x=300, y=y + 20)
         self.zoz_profil_but.append(but)
@@ -198,7 +198,7 @@ class Grafik:
         spat.place_configure(x=5, y=5)
         self.zoz_profil_but.append(spat)
 
-    def zisti_čo_vymazat(self, udaje):
+    def zisti_co_vymazat(self, udaje):
         """
         This function checks which items to delete from a list based on user input and then calls another
         function to delete them from a database.
