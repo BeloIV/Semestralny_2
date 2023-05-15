@@ -1710,9 +1710,7 @@ class Grafik:
         """
         self.posli_mail(message, emial_to, img)
 
-    def vymaz_dakujeme(
-        self,
-    ):
+    def vymaz_dakujeme(self):
         """
         The function deletes a "thank you" message and button from a canvas in a CarRent object.
         """
