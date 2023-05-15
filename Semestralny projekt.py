@@ -19,15 +19,22 @@ from email.mime.image import MIMEImage
 class Grafik():
     def __init__(self):
         """Inicialializacia a uplny začiatok."""
+        self.root = tkinter.Tk()
         self.canvas = tkinter.Canvas(height=905, width=705)
+        self.root.title("BeloCar")
         self.canvas.pack()
+
         self.vytvor_prostredie()
         self.id_od = 0
+        self.zobrazene = False
 
     def klik(self,event):
         if 0<event.x <60 and 0<event.y<50 and self.nic_sa_nedeje is True:
-
-            self.vytvor_moznosti_zoradenia()
+            print(self.zobrazene)
+            if self.zobrazene is False:
+                self.vytvor_moznosti_zoradenia()
+            else:
+                self.vymaz_moznosti_zoradenia(1)
 
         elif 650<event.x <710 and 0<event.y<50 and self.nic_sa_nedeje is True:
             self.ukaz_profil()
@@ -35,6 +42,9 @@ class Grafik():
             self.zisti_kde_klikol(event)
 
     def ukaz_profil(self):
+        try:
+            self.vymaz_dakujeme()
+        except:pass
         if self.nic_sa_nedeje is True:
             self.vymaz_podrobnu_ponuku()
 
@@ -198,11 +208,11 @@ class Grafik():
 
 
     def registracia_formular(self):
-        self.nic_sa_nedeje = False
+
         self.vymaz_profil(1)
         self.zoz_registracia = []
         self.zoz_registracia_but = []
-
+        self.nic_sa_nedeje = False
 
 
         zoz = ["Meno","Mail","Heslo","Adresa"]
@@ -243,6 +253,8 @@ class Grafik():
     def skontroluj_registraciu(self):
         x = self.zoz_registracia_but[:4]
         xx = []
+
+
         for i in x:
             xx.append(i.get())
         if len(xx[0]) < 3:
@@ -250,12 +262,24 @@ class Grafik():
             self.canvas.update()
             self.canvas.after(1000)
             self.canvas.delete(pop_up)
-        elif "@" not in xx[1]:
-            pop_up = self.canvas.create_text(470,140,text="Zlý format",fill="red")
+
+        try:
+            mail = xx[1]
+            ind = mail.index("@")
+            bodka = mail[ind:].index(".")
+            if "@" not in mail or "." not in mail[ind:] or len(mail[:ind])<5 or len(mail[ind:])<5 or len(mail[bodka+ind:])<2:
+                pop_up = self.canvas.create_text(470,140,text="Zlý format",fill="red")
+                self.canvas.update()
+                self.canvas.after(1000)
+                self.canvas.delete(pop_up)
+        except:
+            pop_up = self.canvas.create_text(470, 140, text="Zlý format", fill="red")
             self.canvas.update()
             self.canvas.after(1000)
             self.canvas.delete(pop_up)
-        elif len(xx[2]) < 5:
+
+
+        if len(xx[2]) < 5:
             pop_up = self.canvas.create_text(490,165,text="Heslo príliš krátke",fill="red")
             self.canvas.update()
             self.canvas.after(1000)
@@ -303,13 +327,14 @@ class Grafik():
             for i in self.zoz_filt_but:
                 i.place_forget()
         except:pass
+
     def vytvor_filre(self):
         self.vymaz_filtre()
         self.zoz_filtruj = []
         self.zoz_filt_but = []
         self.zoz_filtruj.append(self.canvas.create_rectangle(5,51,700,110,fill="black"))
 
-        zoz = ["Značka","Km od","Km do","Kw od","Kw do","Objem od","Objem do",]
+        zoz = ["Značka","Km od","Km do","Kw od","Kw do","Rok od","Rok do",]
         x1 = 42
         x2 = 20
         for i in zoz:
@@ -331,20 +356,22 @@ class Grafik():
             except:pass
         CarRent.filtruj(self,zoz)
     def vytvor_moznosti_zoradenia(self):
+
         try:
             self.vymaz_moznosti_zoradenia()
         except:pass
+        self.zobrazene = True
         self.zoz_sortuj = []
         self.zoz_sor_but = []
         self.zoz_sortuj.append(self.canvas.create_rectangle(20,40,220,290,fill="darkgray"))
 
-        self.sortuj_button = tkinter.Button(text="Najnovšie",command=lambda:CarRent.uprav_zoradenie(self,"najnovšie"),borderwidth=0,border=0)
-        self.sortuj_button.place_configure(x=70,y=50)
+        self.sortuj_button = tkinter.Button(text="Najnovšie (pridanie)",command=lambda:CarRent.uprav_zoradenie(self,"najnovšie"),borderwidth=0,border=0)
+        self.sortuj_button.place_configure(x=42,y=50)
         self.zoz_sor_but.append(self.sortuj_button)
-        self.sortuj_button = tkinter.Button(text="Najstaršie",
+        self.sortuj_button = tkinter.Button(text="Najstaršie (pridanie)",
                                               command=lambda: CarRent.uprav_zoradenie(self, "od_staršieho"), borderwidth=0,
                                               border=0)
-        self.sortuj_button.place_configure(x=70, y=80)
+        self.sortuj_button.place_configure(x=42, y=80)
         self.zoz_sor_but.append(self.sortuj_button)
         self.sortuj_button = tkinter.Button(text="Od Najlacnejšieho",
                                               command=lambda: CarRent.uprav_zoradenie(self, "Naj_lacnejsie"), borderwidth=0,
@@ -373,14 +400,14 @@ class Grafik():
 
         self.sortuj_button.place_configure(x=25, y=200)
         self.zoz_sor_but.append(self.sortuj_button)
-        self.sortuj_button = tkinter.Button(text="Rok Výroby(Najviac) ",
+        self.sortuj_button = tkinter.Button(text="Rok Výroby(Najnovšie) ",
                                             command=lambda: CarRent.uprav_zoradenie(self, "rok_viac"),
                                             borderwidth=0,
                                             border=0)
 
         self.sortuj_button.place_configure(x=40, y=230)
         self.zoz_sor_but.append(self.sortuj_button)
-        self.sortuj_button = tkinter.Button(text="Rok Výroby (Najmenej)",
+        self.sortuj_button = tkinter.Button(text="Rok Výroby (Najstaršie)",
                                             command=lambda: CarRent.uprav_zoradenie(self, "rok_menej"),
                                             borderwidth=0,
                                             border=0)
@@ -398,6 +425,7 @@ class Grafik():
         print("vymaz moznosti zoradenia")
         if ako == 1:
             self.nic_sa_nedeje = True
+        self.zobrazene = False
 
 
     def vytvor_prostredie(self):
@@ -439,9 +467,10 @@ class Grafik():
                     self.id_od -= 3
                 elif event.delta <0:
                     self.id_od += 3
+                print(self.id_od,len(self.udaje))
                 if self.id_od < 0:
                     self.id_od = 0
-                if self.id_od > len(self.udaje):
+                if self.id_od > len(self.udaje)-3:
                     self.id_od = len(self.udaje)-3
                 udaje = self.udaje[self.id_od:self.id_od+12]
                 self.graf_ponuka(udaje)
@@ -885,9 +914,9 @@ class Grafik():
             self.vymaz_ponuku()
 
             self.zoz_podrobna_ponuka = []
-            zoz = ["  Najazdených km : ","       Rok vyroby : ","       Výkon Motora : ","            Objem motora : ","            Spotreba : "
-                  ,"       Cena/Deň : ", "     Cena/týždeň : ", "               Typ : ",]
-            zoz2 = ["",""," kw", " cm^3"," l/100"," €"," €","",]
+            zoz = ["Najazdených (km) : ","       Rok výroby : ","      Výkon Motora : ","            Objem motora : ","                 Spotreba : "
+                  ,"       Cena/deň : ", "     Cena/týždeň : ", "               Typ : ",]
+            zoz2 = ["",""," kw", " cm\u00b3"," l/100km"," €"," €","",]
             self.zoz_podrobna_ponuka.append(self.canvas.create_text(350, 70, text=udaje[1], font="Arial 25"))
             self.zoz_podrobna_ponuka.append(self.canvas.create_rectangle(10,85,695,180))
             x = 150
@@ -950,7 +979,7 @@ class Grafik():
             self.vymaz_podrobnu_ponuku(1)
             prihlaseny = 1
         except:
-            x = self.canvas.create_text(350,800,text="Najpr sa musíte prihlasiť!",font="Arial 40",fill="red")
+            x = self.canvas.create_text(350,800,text="Najprv sa musíte prihlasiť!",font="Arial 40",fill="red")
             self.canvas.update()
             self.canvas.after(1000)
             self.canvas.delete(x)
@@ -1014,7 +1043,7 @@ class Grafik():
             zoz = ["Meno:", "Adresa:","Mail:","Cena celkom:"]
             x = 250
             y = 180
-            cena = CarRent.daj_cenovku(self,pocetdni)
+            cena = CarRent.daj_cenovku(self,pocetdni,udaje[0])
             cena = round(cena,2)
             #print(udaje_uzivatel)
             udajezoz = [udaje_uzivatel[0][1],udaje_uzivatel[0][4],udaje_uzivatel[0][2],cena]
@@ -1056,6 +1085,7 @@ class Grafik():
                 self.canvas.create_text(350, 180, text="Podrobnosti sme vam zaslali e-mailom", font="Arial 15"))
         except:
             pass
+
         x = Image.open(r"Images/back.png")
         xx = ImageTk.PhotoImage(x)
         self.zoz_dakujeme.append(xx)
@@ -1263,12 +1293,18 @@ class CarRent(Grafik):
         conn.close()
         return x
 
-    def daj_cenovku(self,pocetdni):
-
+    def daj_cenovku(self,pocetdni,id):
+        conn = sqlite3.connect('pozicovna.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM pozicovna WHERE id = " + str(id))
+        x = c.fetchall()
+        conn.commit()
+        conn.close()
         if pocetdni >= 7:
-            return self.my[0][9]*(pocetdni/7)
+            return x[0][9]*(pocetdni/7)
         else:
-            return self.my[0][8]*pocetdni
+            return x[0][8]*pocetdni
+
     def objenaj(self,id_auta,cena,datum_od,datum_do):
         super().vymaz_objednavka(1)
         super().dakujeme_za_objednavku()
@@ -1454,7 +1490,7 @@ class CarRent(Grafik):
                                 reqest += " AND  km  BETWEEN " +str(i) + " AND " + str(xx)
                             except:pass
                         else:
-                            reqest += " AND  km > " + str(i)
+                            reqest += " AND  km >= " + str(i)
                     else:
                         if filtre[cis+1] != "":
                             try:
@@ -1462,7 +1498,7 @@ class CarRent(Grafik):
                                 reqest += " WHERE km BETWEEN " +str(i) + " AND " + str(xx)
                             except:pass
                         else:
-                            reqest += " WHERE km > " + str(i)
+                            reqest += " WHERE km >= " + str(i)
                     km_od = i
 
                 except:pass
@@ -1470,9 +1506,9 @@ class CarRent(Grafik):
                 try:
                     i = int(i)
                     if reqest !="":
-                            reqest += " AND  km < " + str(i)
+                            reqest += " AND  km <= " + str(i)
                     else:
-                            reqest += " WHERE km < " + str(i)
+                            reqest += " WHERE km <= " + str(i)
                 except:pass
             if cis == 3 and i != "" and "WHERE kw" not in reqest:
                 try:
@@ -1485,7 +1521,7 @@ class CarRent(Grafik):
                             except:
                                 pass
                         else:
-                            reqest += " AND  kw > " + str(i)
+                            reqest += " AND  kw >= " + str(i)
                     else:
                         if filtre[cis + 1] != "":
                             try:
@@ -1494,7 +1530,7 @@ class CarRent(Grafik):
                             except:
                                 pass
                         else:
-                            reqest += " WHERE kw > " + str(i)
+                            reqest += " WHERE kw >= " + str(i)
                     kw_od = i
 
                 except:
@@ -1504,43 +1540,43 @@ class CarRent(Grafik):
                     i = int(i)
                     if reqest != "":
 
-                            reqest += " AND  kw < " + str(i)
+                            reqest += " AND  kw <= " + str(i)
                     else:
-                            reqest += " WHERE kw < " + str(i)
+                            reqest += " WHERE kw <= " + str(i)
                 except:pass
-            if cis == 5 and i != "" and "WHERE objem" not in reqest:
+            if cis == 5 and i != "" and "WHERE rok" not in reqest:
                 try:
                     i = int(i)
                     if reqest != "":
                         if filtre[cis + 1] != "":
                             try:
                                 xx = int(filtre[cis + 1])
-                                reqest += " AND  objem  BETWEEN " + str(i) + " AND " + str(xx)
+                                reqest += " AND  rok  BETWEEN " + str(i) + " AND " + str(xx)
                             except:
                                 pass
                         else:
-                            reqest += " AND objem > " + str(i)
+                            reqest += " AND rok >= " + str(i)
                     else:
                         if filtre[cis + 1] != "":
                             try:
                                 xx = int(filtre[cis + 1])
-                                reqest += " WHERE objem BETWEEN " + str(i) + " AND " + str(xx)
+                                reqest += " WHERE rok BETWEEN " + str(i) + " AND " + str(xx)
                             except:
                                 pass
                         else:
-                            reqest += " WHERE objem > " + str(i)
+                            reqest += " WHERE rok >= " + str(i)
                     kw_od = i
 
                 except:
                     pass
-            if cis == 6 and i !="" and kw_od is None and "WHERE objem" not in reqest:
+            if cis == 6 and i !="" and kw_od is None and "WHERE rok" not in reqest:
                 try:
                     i = int(i)
                     if reqest != "":
 
-                            reqest += " AND  objem < " + str(i)
+                            reqest += " AND  rok <= " + str(i)
                     else:
-                            reqest += " WHERE objem < " + str(i)
+                            reqest += " WHERE rok <= " + str(i)
                 except:pass
 
         tab = sqlite3.connect('pozicovna.db')
@@ -1555,8 +1591,8 @@ class CarRent(Grafik):
 
         #self.request = "SELECT * FROM pozicovna ORDER BY id DESC"
         c.execute(self.request)
-        my = c.fetchall()
-        super().ponuka(my)
+        self.my = c.fetchall()
+        super().ponuka(self.my)
 
         tab.commit()
         tab.close()
