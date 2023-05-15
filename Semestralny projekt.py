@@ -13,7 +13,7 @@ from email.mime.image import MIMEImage
 
 
 
-import PIL
+
 
 
 class Grafik():
@@ -22,6 +22,7 @@ class Grafik():
         self.canvas = tkinter.Canvas(height=905, width=705)
         self.canvas.pack()
         self.vytvor_prostredie()
+        self.id_od = 0
 
     def klik(self,event):
         if 0<event.x <60 and 0<event.y<50 and self.nic_sa_nedeje is True:
@@ -397,11 +398,7 @@ class Grafik():
         print("vymaz moznosti zoradenia")
         if ako == 1:
             self.nic_sa_nedeje = True
-    def klik_na_cokolvek(self):
-        """
-        Funkcia caka na kliknutie
-        """
-        self.canvas.bind('<ButtonPress>',self.klik )
+
 
     def vytvor_prostredie(self):
         self.canvas.create_rectangle(5, 5, 700, 900)
@@ -426,49 +423,50 @@ class Grafik():
     def update_logo(self):
         self.canvas.itemconfig(self.logoo, image=self.logo)
 
-    def ponuka(self, udaje):
+    def klik_na_cokolvek(self):
+        """
+        Funkcia caka na kliknutie
+        """
+        self.canvas.bind('<ButtonPress>',self.klik )
+        self.canvas.bind("<MouseWheel>", self.posun_ponuku)
+    def posun_ponuku(self,event):
+        if self.nic_sa_nedeje is True:
+            if len(self.udaje) >12:
+                self.vymaz_ponuku()
+                self.nic_sa_nedeje = True
+                self.vytvor_filre()
+                if event.delta > 0:
+                    self.id_od -= 3
+                elif event.delta <0:
+                    self.id_od += 3
+                if self.id_od < 0:
+                    self.id_od = 0
+                if self.id_od > len(self.udaje):
+                    self.id_od = len(self.udaje)-3
+                udaje = self.udaje[self.id_od:self.id_od+12]
+                self.graf_ponuka(udaje)
 
+
+    def ponuka(self, udaje):
+        self.id_od = 0
+        self.udaje = udaje
+        if len(udaje) > 12:
+            udaje = udaje[:12]
+            self.aktualne_udaje = udaje
         self.klik_na_cokolvek()
         self.nic_sa_nedeje = True
         self.vymaz_ponuku()
+        self.vytvor_filre()
+        self.graf_ponuka(udaje)
+
+
+    def graf_ponuka(self, udaje):
+
         self.zoz_ponuka_hore = []
         x = Image.open(r"Images/icon.png")
         xx = ImageTk.PhotoImage(x)
         self.zoz_ponuka_hore.append(xx)
         self.zoz_ponuka_hore.append(self.canvas.create_image(40, 28, image=xx))
-        self.graf_ponuka(udaje)
-        self.vytvor_filre()
-
-    def zisti_kde_klikol(self, event):
-        x = 100
-        y = 175
-
-        if self.nic_sa_nedeje is True:
-            print(self.nic_sa_nedeje)
-            for i in range(12):
-                #rint(x,event.x,x+100,y,event.y,y+120)
-                if x<event.x<x+100 and y<event.y<y+120:
-                    CarRent.daj_udaje_o_kartičke(self,i)
-                    break
-                if i < 2:
-                    x += 220
-                elif i == 2:
-                    x = 100
-                    y += 190
-                elif 2<i<5:
-                    x += 220
-                elif i == 5:
-                    x = 100
-                    y += 190
-                elif 5<i<8:
-                    x += 220
-                elif i == 8:
-                    x = 100
-                    y += 190
-                else:
-                    x += 220
-
-    def graf_ponuka(self, udaje):
         x = 100
         y = 175
         for cis, i in enumerate(udaje):
@@ -478,7 +476,7 @@ class Grafik():
             img = Image.open(r"Obrazky_aut/" + obrazky[0])
             c = img.getbbox()
 
-            c = (c[3] + c[2]) /c[3]
+            c = (c[3] + c[2]) / c[3]
 
             a = int(c * 75)
 
@@ -500,18 +498,49 @@ class Grafik():
             elif cis == 2:
                 x = 100
                 y += 190
-            elif 2<cis<5:
+            elif 2 < cis < 5:
                 x += 220
-            elif cis ==5:
+            elif cis == 5:
                 y += 190
                 x = 100
-            elif 5<cis<8:
+            elif 5 < cis < 8:
                 x += 220
             elif cis == 8:
                 y += 190
                 x = 100
             else:
-                x+=220
+                x += 220
+
+    def zisti_kde_klikol(self, event):
+        x = 100
+        y = 175
+
+        if self.nic_sa_nedeje is True:
+            print(self.nic_sa_nedeje)
+            for i in range(12):
+                #rint(x,event.x,x+100,y,event.y,y+120)
+                if x<event.x<x+100 and y<event.y<y+120:
+                    CarRent.daj_udaje_o_kartičke(self,i+self.id_od)
+                    break
+                if i < 2:
+                    x += 220
+                elif i == 2:
+                    x = 100
+                    y += 190
+                elif 2<i<5:
+                    x += 220
+                elif i == 5:
+                    x = 100
+                    y += 190
+                elif 5<i<8:
+                    x += 220
+                elif i == 8:
+                    x = 100
+                    y += 190
+                else:
+                    x += 220
+
+
     def vymaz_ponuku(self):
         try:
             for i in self.zoz_ponuka_hore:
@@ -905,7 +934,7 @@ class Grafik():
                                         background="black")
             self.left.place_configure(x=110, y=270)
             self.objednaj = tkinter.Button(text="Objednať", font="Arial 25", command=lambda :self.obrazovka_objednavka_pocet_dni(udaje))
-            self.objednaj.place_configure(x=280, y=800)
+            self.objednaj.place_configure(x=280, y=635)
 
             self.vytvor_obrazky_pod(obr)
             self.nic_sa_nedeje = False
@@ -1199,20 +1228,26 @@ class CarRent(Grafik):
         # super().formular_na_vlozenie()
     def vymaz_objednavku(self,id,id_auta):
 
-        conn = sqlite3.connect('databaza.db')
-        conn.execute("DELETE FROM objednavky WHERE id = "+str(id))
-        conn.execute("UPDATE pozicovna SET rented = ? WHERE id = ?", (0, id_auta,))
-        conn.commit()
-        conn.close()
+        obj = sqlite3.connect('objednavky.db')
+        pozic = sqlite3.connect('pozicovna.db')
+        obj.execute("DELETE FROM objednavky WHERE id = "+str(id))
+        pozic.execute("UPDATE pozicovna SET rented = ? WHERE id = ?", (0, id_auta,))
+        pozic.commit()
+        pozic.close()
+        obj.commit()
+        obj.close()
         super().vymaz_profil(1)
         super().ukaz_profil()
     def vymaz_z_databazy(self,id,obrazky):
-        conn = sqlite3.connect('databaza.db')
 
-        conn.execute("DELETE FROM pozicovna WHERE id = " + str(id))
-        conn.execute("DELETE FROM objednavky WHERE id_auta = " + str(id))
-        conn.commit()
-        conn.close()
+        obj = sqlite3.connect('objednavky.db')
+        pozic = sqlite3.connect('pozicovna.db')
+        pozic.execute("DELETE FROM pozicovna WHERE id = " + str(id))
+        obj.execute("DELETE FROM objednavky WHERE id_auta = " + str(id))
+        pozic.commit()
+        pozic.close()
+        obj.commit()
+        obj.close()
         obrazky = obrazky.split("//")
         for i in obrazky:
             os.remove("/Users/stefanbelusko/Desktop/skola/programovanie/Semestralny_2/Obrazky_aut/"+i)
@@ -1220,7 +1255,7 @@ class CarRent(Grafik):
         super().vymaz_profil(1)
         super().ukaz_profil()
     def daj_vsetky_auta(self):
-        conn = sqlite3.connect('databaza.db')
+        conn = sqlite3.connect('pozicovna.db')
         c= conn.cursor()
         c.execute("SELECT * FROM pozicovna")
         x = c.fetchall()
@@ -1239,23 +1274,33 @@ class CarRent(Grafik):
         super().dakujeme_za_objednavku()
         uzivatel = self.pouzivatel[0][0]
 
-        conn = sqlite3.connect('databaza.db')
+        pouzivat = sqlite3.connect('pouzivatelia.db')
+        obj = sqlite3.connect('objednavky.db')
+        pozic = sqlite3.connect('pozicovna.db')
         id_auta= int(id_auta)
         id_uzivatela= int(uzivatel)
         datum_od = str(datum_od)
         datum_do =str(datum_do)
         cena = float(cena)
         print(id_auta, id_uzivatela, datum_od, datum_do, cena)
-        conn.execute(f"INSERT INTO objednavky (id_auta, id_uzivatela, datum_od, datum_do, cena) VALUES (?, ?, ?,?,?)",
+        obj.execute(f"INSERT INTO objednavky (id_auta, id_uzivatela, datum_od, datum_do, cena) VALUES (?, ?, ?,?,?)",
                      (id_auta, id_uzivatela, datum_od, datum_do, cena))
 
-        conn.execute("UPDATE pouzivatelia SET pozicane_auto = ? WHERE id = ?", (id_auta, id_uzivatela))
-        conn.execute("UPDATE pozicovna SET rented = ? WHERE id = ?", (1,id_auta,))
-        conn.commit()
-        conn.close()
+        pouzivat.execute("UPDATE pouzivatelia SET pozicane_auto = ? WHERE id = ?", (id_auta, id_uzivatela))
+        pozic.execute("UPDATE pozicovna SET rented = ? WHERE id = ?", (1,id_auta,))
+        pozic.commit()
+        pozic.close()
+        obj.commit()
+        obj.close()
+        pouzivat.commit()
+        pouzivat.close()
 
     def daj_udaje_uzivatel(self):
-        return self.pouzivatel
+        if self.pouzivatel is not None:
+
+            return self.pouzivatel
+        else:
+            raise Exception
 
     def daj_udaje_o_kartičke(self,id):
         x = self.my[id]
@@ -1264,11 +1309,12 @@ class CarRent(Grafik):
     def odhlas(self):
         self.prihlasieni = False
         self.admin = 0
+        self.pouzivatel = None
         super().vymaz_profil()
         super().ukaz_profil()
 
     def daj_objedavky(self):
-        conn = sqlite3.connect('databaza.db')
+        conn = sqlite3.connect('objednavky.db')
         c = conn.cursor()
 
         c.execute("SELECT * FROM objednavky WHERE id_uzivatela = "+ str(self.pouzivatel[0][0]))
@@ -1277,7 +1323,7 @@ class CarRent(Grafik):
         conn.close()
         return x
     def daj_nazov_auta(self,id):
-        conn = sqlite3.connect('databaza.db')
+        conn = sqlite3.connect('pozicovna.db')
         c = conn.cursor()
 
         c.execute("SELECT * FROM pozicovna WHERE id = " + str(id))
@@ -1287,7 +1333,7 @@ class CarRent(Grafik):
         return x[0][1]
 
     def registruj(self,udaje):
-        conn = sqlite3.connect('databaza.db')
+        conn = sqlite3.connect('pouzivatelia.db')
         heslo = udaje[2]
         meno = udaje[0]
         mail = udaje[1]
@@ -1297,9 +1343,9 @@ class CarRent(Grafik):
         conn.commit()
         conn.close()
         super().vymaz_registraciu()
-        self.spat_na_ponuku()
+
     def prihlasienie(self,meno,heslo):
-        conn = sqlite3.connect('databaza.db')
+        conn = sqlite3.connect('pouzivatelia.db')
         c = conn.cursor()
         sifra = hashlib.sha256(heslo.encode('utf-8')).hexdigest()
         req = f"SELECT * FROM pouzivatelia WHERE meno = '{meno}' AND heslo = '{sifra}'"
@@ -1319,7 +1365,7 @@ class CarRent(Grafik):
     def daj_prihlasenost(self):
         return self.prihlasieni,self.admin
     def vytvor_ponuku(self):
-        tab = sqlite3.connect('databaza.db')
+        tab = sqlite3.connect('pozicovna.db')
         c = tab.cursor()
         self.order = " ORDER BY id DESC"
         self.request = "SELECT * FROM pozicovna WHERE rented = 0 ORDER BY id DESC"
@@ -1333,7 +1379,7 @@ class CarRent(Grafik):
     def uprav_zoradenie(self,ako):
         super().vymaz_moznosti_zoradenia(1)
         super().vymaz_ponuku()
-        tab = sqlite3.connect('databaza.db')
+        tab = sqlite3.connect('pozicovna.db')
         c = tab.cursor()
         if ako == "od_staršieho":
             request = " ORDER BY id ASC"
@@ -1374,18 +1420,19 @@ class CarRent(Grafik):
         x = udaje["obrazky"]
         x = "//".join(x)
         udaje["obrazky"] = x
-        tab = sqlite3.connect('databaza.db')
+        tab = sqlite3.connect('pozicovna.db')
         c = tab.cursor()
         zudaje = []
 
-        for i in self.udaje:
-            zudaje.append(self.udaje[i])
+        for i in udaje:
+            zudaje.append(udaje[i])
         otazniky = ",".join(["?" for _ in udaje])
         c.execute(
             f"INSERT INTO pozicovna (nazov, popis, km, rok, kw, objem, spotreba, cenaden, cenatyzden, typ,obrazky) VALUES ({otazniky})",
             zudaje)
         tab.commit()
         tab.close()
+
 
     def filtruj(self,filtre):
         reqest =  f" WHERE rented = {0}"
@@ -1496,7 +1543,7 @@ class CarRent(Grafik):
                             reqest += " WHERE objem < " + str(i)
                 except:pass
 
-        tab = sqlite3.connect('databaza.db')
+        tab = sqlite3.connect('pozicovna.db')
         c = tab.cursor()
 
 
