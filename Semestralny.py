@@ -31,7 +31,6 @@ class Grafik:
         """
         The function handles mouse clicks and performs different actions based on the location of the click.
         """
-
         if 0 < event.x < 60 and 0 < event.y < 50 and self.nic_sa_nedeje is True:
 
             if self.zobrazene is False:
@@ -2005,9 +2004,10 @@ class CarRent(Grafik):
         specific card from the "my" dictionary. It is passed as an argument to the method
         "daj_udaje_o_kartičke"
         """
-        x = self.my[id]
-        super().vytvor_podrobne_info(x)
-
+        try:
+            x = self.my[id]
+            super().vytvor_podrobne_info(x)
+        except:pass
     def odhlas(self):
         """
         This function logs out a user by resetting their login status, admin status, and user profile.
